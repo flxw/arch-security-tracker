@@ -1,9 +1,11 @@
 import re
 from functools import wraps
-
 from flask import json
-
 from config import atom_feeds
+
+from config import SSO_ENABLED
+from flask_login import login_required as flask_login_required
+from tracker import oauth
 
 word_split_re = re.compile(r'(\s+)')
 punctuation_re = re.compile(
@@ -93,3 +95,13 @@ def atom_feed(title):
 def issue_to_numeric(issue_label):
     self_parts = issue_label.split('-')
     return int(self_parts[1] + self_parts[2].rjust(7, '0'))
+
+def login_required(func):
+    if SSO_ENABLED:
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            return oauth.idp.authorize_redirect("http://localhost:5000")
+            #return func(*args, **kwargs)
+        return wrapped 
+    else:
+        return flask_login_required(func)

@@ -61,3 +61,6 @@ SESSION_COOKIE_SAMESITE = config_flask['session_cookie_samesite']
 
 config_pacman = config['pacman']
 PACMAN_HANDLE_CACHE_TIME = config_pacman.getint('handle_cache_time')
+
+config_sso = config['sso']
+SSO_ENABLED = config_sso.getboolean('enabled')

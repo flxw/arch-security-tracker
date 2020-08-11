@@ -3,7 +3,7 @@ from functools import wraps
 from os import urandom
 
 from flask_login import current_user
-from flask_login import login_required
+from .util import login_required
 from scrypt import hash as shash
 from sqlalchemy.exc import IntegrityError
 

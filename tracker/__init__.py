@@ -14,7 +14,9 @@ from sqlalchemy_continuum import make_versioned
 from sqlalchemy_continuum.plugins import FlaskPlugin
 from sqlalchemy_continuum.plugins import PropertyModTrackerPlugin
 from werkzeug.routing import BaseConverter
+from authlib.integrations.flask_client import OAuth
 
+from config import SSO_ENABLED
 from config import FLASK_SESSION_PROTECTION
 from config import FLASK_STRICT_TRANSPORT_SECURITY
 from config import SQLALCHEMY_MIGRATE_REPO
@@ -83,6 +85,7 @@ make_versioned(plugins=[FlaskPlugin(), PropertyModTrackerPlugin()])
 migrate = Migrate(db=db, directory=SQLALCHEMY_MIGRATE_REPO)
 talisman = Talisman()
 login_manager = LoginManager()
+oauth = OAuth()
 tracker = Blueprint('tracker', __name__)
 
 
@@ -108,6 +111,19 @@ def create_app(script_info=None):
     app.url_map.converters['regex'] = RegexConverter
     app.jinja_env.globals['ATOM_FEEDS'] = atom_feeds
 
+    if SSO_ENABLED:
+        app.config["IDP_CLIENT_ID"] = "arch-security-tracker"
+        app.config["IDP_CLIENT_SECRET"] = "758b8a47-0aed-495c-91dc-79abb34087a4"
+        app.config["IDP_AUTHORIZE_URL"] = "http://localhost:8080/auth/realms/master/protocol/openid-connect/auth"
+        # TODO set cache
+        oauth.init_app(app)
+        oauth.register(
+            name='idp',
+            client_kwargs={
+                'scope': 'openid email profile'
+            }
+        )
+
     from tracker.view.error import error_handlers
     for error_handler in error_handlers:
         app.register_error_handler(error_handler['code_or_exception'], error_handler['func'])
@@ -127,6 +143,6 @@ def create_app(script_info=None):
         from tracker.model import User
         return dict(db=db, migrate=migrate, talisman=talisman, login_manager=login_manager, tracker=tracker,
                     Advisory=Advisory, CVE=CVE, CVEGroup=CVEGroup, CVEGroupEntry=CVEGroupEntry,
-                    CVEGroupPackage=CVEGroupPackage, User=User, Package=Package)
+                    CVEGroupPackage=CVEGroupPackage, User=User, Package=Package, oauth=oauth)
 
     return app
