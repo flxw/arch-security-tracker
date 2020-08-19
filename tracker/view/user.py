@@ -2,7 +2,7 @@ from flask import flash
 from flask import redirect
 from flask import render_template
 from flask_login import current_user
-from ..sso import login_required
+from ..user import login_required
 from sqlalchemy_continuum import version_class
 from sqlalchemy_continuum import versioning_manager
 

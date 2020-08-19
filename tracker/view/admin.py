@@ -2,7 +2,7 @@ from flask import flash
 from flask import redirect
 from flask import render_template
 from flask_login import current_user
-from ..sso import login_required
+from ..user import login_required
 
 from config import TRACKER_PASSWORD_LENGTH_MAX
 from config import TRACKER_PASSWORD_LENGTH_MIN
