@@ -113,14 +113,15 @@ def create_app(script_info=None):
 
     if SSO_ENABLED:
         app.config["IDP_CLIENT_ID"] = "arch-security-tracker"
-        app.config["IDP_CLIENT_SECRET"] = "758b8a47-0aed-495c-91dc-79abb34087a4"
-        app.config["IDP_AUTHORIZE_URL"] = "http://localhost:8080/auth/realms/master/protocol/openid-connect/auth"
+        app.config["IDP_CLIENT_SECRET"] = "ef257b22-1167-43b4-9076-7336c983fd81"
+        #app.config["IDP_AUTHORIZE_URL"] = "http://localhost:8080/auth/realms/master/protocol/openid-connect/auth"
         # TODO set cache
         oauth.init_app(app)
         oauth.register(
             name='idp',
+            server_metadata_url='http://localhost:8080/auth/realms/master/.well-known/openid-configuration',
             client_kwargs={
-                'scope': 'openid email profile'
+                'scope': 'openid email'
             }
         )
 
