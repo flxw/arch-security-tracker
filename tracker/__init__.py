@@ -16,7 +16,7 @@ from sqlalchemy_continuum.plugins import PropertyModTrackerPlugin
 from werkzeug.routing import BaseConverter
 from authlib.integrations.flask_client import OAuth
 
-from config import SSO_ENABLED
+from config import SSO_ENABLED, SSO_CLIENT_ID, SSO_CLIENT_SECRET
 from config import FLASK_SESSION_PROTECTION
 from config import FLASK_STRICT_TRANSPORT_SECURITY
 from config import SQLALCHEMY_MIGRATE_REPO
@@ -112,9 +112,8 @@ def create_app(script_info=None):
     app.jinja_env.globals['ATOM_FEEDS'] = atom_feeds
 
     if SSO_ENABLED:
-        app.config["IDP_CLIENT_ID"] = "arch-security-tracker"
-        app.config["IDP_CLIENT_SECRET"] = "ef257b22-1167-43b4-9076-7336c983fd81"
-        #app.config["IDP_AUTHORIZE_URL"] = "http://localhost:8080/auth/realms/master/protocol/openid-connect/auth"
+        app.config["IDP_CLIENT_ID"] = SSO_CLIENT_ID
+        app.config["IDP_CLIENT_SECRET"] = SSO_CLIENT_SECRET
         # TODO set cache
         oauth.init_app(app)
         oauth.register(

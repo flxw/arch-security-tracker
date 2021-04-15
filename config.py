@@ -64,3 +64,5 @@ PACMAN_HANDLE_CACHE_TIME = config_pacman.getint('handle_cache_time')
 
 config_sso = config['sso']
 SSO_ENABLED = config_sso.getboolean('enabled')
+SSO_CLIENT_SECRET = config_sso.get('client_secret')
+SSO_CLIENT_ID = config_sso.get('client_id')
