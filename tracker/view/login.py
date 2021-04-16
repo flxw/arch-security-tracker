@@ -14,6 +14,7 @@ from tracker.form import LoginForm
 from tracker.model.user import User
 from tracker.user import user_assign_new_token
 from tracker.user import user_invalidate
+from ..model.enum import UserRole
 
 
 @tracker.route('/login', methods=['GET', 'POST'])
@@ -60,12 +61,18 @@ def sso_auth():
     parsed_token = oauth.idp.parse_id_token(token)
     # check if user can be matched against local db of users
     user = db.get(User, email=parsed_token.get('email'))
+    usergroups = parsed_token.get('groups')
+
+    # TODO how to continue:
+    # parsed_token contains the groups
+    # user can be mapped depending on these groups
+    # and should be updated/provisioned accordingly
 
     if user:
         user = user_assign_new_token(user)
         user.is_authenticated = True
         login_user(user)
-    elif len(parsed_token.get('roles')) == 0:
+    elif len(usergroups) == 0:
         return redirect(url_for('tracker.index'))
     else:
         # user does not exist in local db
@@ -73,14 +80,18 @@ def sso_auth():
         from tracker.user import random_string, hash_password
 
         user = User()
-        user.name = parsed_token.get('preferred_username')
+        user.name = "penis" #parsed_token.get('preferred_username')
         user.email = parsed_token.get('email')
         user.salt = random_string()
         user.password = hash_password('wasd', user.salt)
-        user.role = parsed_token.get('roles')[0] 
+        user.role = UserRole.administrator 
         user.active = True
 
         db.session.add(user)
         db.session.commit()
+
+        user = user_assign_new_token(user)
+        user.is_authenticated = True
+        login_user(user)
 
     return redirect(url_for('tracker.index'))
