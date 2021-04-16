@@ -18,12 +18,8 @@ from tracker.user import user_invalidate
 
 @tracker.route('/login', methods=['GET', 'POST'])
 def login():
-    # TODO start OIDC flow here if SSO is enabled
     if SSO_ENABLED:
-        if False:
-            return redirect(url_for('tracker.index'))
-        else:
-            return redirect(url_for('tracker.list_user'))
+        return redirect(url_for('tracker.list_user'))
     else:
         if current_user.is_authenticated:
             return redirect(url_for('tracker.index'))
