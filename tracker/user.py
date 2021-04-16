@@ -45,9 +45,10 @@ def login_required(func):
     if SSO_ENABLED:
         @wraps(func)
         def wrapped(*args, **kwargs):
-            redirect_url = url_for('tracker.sso_auth', _external=True)
-            return oauth.idp.authorize_redirect(redirect_url)
-            #return func(*args, **kwargs)
+            if not current_user.is_authenticated:
+                redirect_url = url_for('tracker.sso_auth', _external=True)
+                return oauth.idp.authorize_redirect(redirect_url)
+            return func(*args, **kwargs)
         return wrapped 
     else:
         return flask_login_required(func)
