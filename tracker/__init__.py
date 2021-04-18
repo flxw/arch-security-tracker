@@ -16,7 +16,7 @@ from sqlalchemy_continuum.plugins import PropertyModTrackerPlugin
 from werkzeug.routing import BaseConverter
 from authlib.integrations.flask_client import OAuth
 
-from config import SSO_ENABLED, SSO_CLIENT_ID, SSO_CLIENT_SECRET
+from config import SSO_ENABLED, SSO_CLIENT_ID, SSO_CLIENT_SECRET, SSO_METADATA_URL
 from config import FLASK_SESSION_PROTECTION
 from config import FLASK_STRICT_TRANSPORT_SECURITY
 from config import SQLALCHEMY_MIGRATE_REPO
@@ -114,11 +114,11 @@ def create_app(script_info=None):
     if SSO_ENABLED:
         app.config["IDP_CLIENT_ID"] = SSO_CLIENT_ID
         app.config["IDP_CLIENT_SECRET"] = SSO_CLIENT_SECRET
-        # TODO set cache
+
         oauth.init_app(app)
         oauth.register(
             name='idp',
-            server_metadata_url='http://localhost:8080/auth/realms/master/.well-known/openid-configuration',
+            server_metadata_url= SSO_METADATA_URL,
             client_kwargs={
                 'scope': 'openid email'
             }
