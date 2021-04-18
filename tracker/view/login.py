@@ -61,7 +61,13 @@ def sso_auth():
     parsed_token = oauth.idp.parse_id_token(token)
     # check if user can be matched against local db of users
     user = db.get(User, email=parsed_token.get('email'))
-    usergroups = parsed_token.get('groups')
+    user_groups = parsed_token.get('groups')
+    user_groups_present = user_groups != None
+
+    if not user_groups_present or len(user_groups) == 0:
+        print("SSO error: a user authenticated without any valid groups")
+
+    current_maximum_role = condense_user_groups_to_role(user_groups)
 
     # TODO how to continue:
     # parsed_token contains the groups
@@ -69,11 +75,14 @@ def sso_auth():
     # and should be updated/provisioned accordingly
 
     if user:
+        if user.role != current_maximum_role:
+            user.role = current_maximum_role
+            db.session.add(user)
+            db.session.commit()
+
         user = user_assign_new_token(user)
         user.is_authenticated = True
         login_user(user)
-    elif len(usergroups) == 0:
-        return redirect(url_for('tracker.index'))
     else:
         # user does not exist in local db
         # need to create him to leverage existing user access controls
@@ -84,7 +93,7 @@ def sso_auth():
         user.email = parsed_token.get('email')
         user.salt = random_string()
         user.password = hash_password(SSO_NEW_USER_DEFAULT_PASSWORD, user.salt)
-        user.role = condense_user_groups_to_role(usergroups)
+        user.role = current_maximum_role
         user.active = True
 
         db.session.add(user)
