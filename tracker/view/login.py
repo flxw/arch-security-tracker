@@ -8,7 +8,7 @@ from werkzeug.exceptions import Unauthorized
 
 from config import TRACKER_PASSWORD_LENGTH_MAX
 from config import TRACKER_PASSWORD_LENGTH_MIN
-from config import SSO_ENABLED
+from config import SSO_ENABLED, SSO_NEW_USER_DEFAULT_PASSWORD, SSO_ADMINISTRATOR_GROUP, SSO_REPORTER_GROUP, SSO_SECURITY_TEAM_GROUP, SSO_GUEST_GROUP
 from tracker import tracker, oauth
 from tracker.form import LoginForm
 from tracker.model.user import User
@@ -80,11 +80,11 @@ def sso_auth():
         from tracker.user import random_string, hash_password
 
         user = User()
-        user.name = "penis" #parsed_token.get('preferred_username')
+        user.name = ''
         user.email = parsed_token.get('email')
         user.salt = random_string()
-        user.password = hash_password('wasd', user.salt)
-        user.role = UserRole.administrator 
+        user.password = hash_password(SSO_NEW_USER_DEFAULT_PASSWORD, user.salt)
+        user.role = condense_user_groups_to_role(usergroups)
         user.active = True
 
         db.session.add(user)
@@ -95,3 +95,14 @@ def sso_auth():
         login_user(user)
 
     return redirect(url_for('tracker.index'))
+
+def condense_user_groups_to_role(idp_groups):
+    group_names_for_roles = {
+        SSO_ADMINISTRATOR_GROUP: UserRole.administrator,
+        SSO_SECURITY_TEAM_GROUP: UserRole.security_team,
+        SSO_GUEST_GROUP: UserRole.guest,
+        SSO_REPORTER_GROUP: UserRole.reporter
+    }
+
+    eligible_roles = [group_names_for_roles[group] for group in idp_groups if group in group_names_for_roles]
+    return sorted(eligible_roles, reverse=False)[0]
