@@ -84,7 +84,7 @@ def sso_auth():
         from tracker.user import random_string, hash_password
 
         user = User()
-        user.name = ''
+        user.name = parsed_token.get('preferred_username', '')
         user.email = parsed_token.get('email')
         user.salt = random_string()
         user.password = hash_password(SSO_NEW_USER_DEFAULT_PASSWORD, user.salt)
