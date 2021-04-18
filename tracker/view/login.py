@@ -69,11 +69,6 @@ def sso_auth():
 
     current_maximum_role = condense_user_groups_to_role(user_groups)
 
-    # TODO how to continue:
-    # parsed_token contains the groups
-    # user can be mapped depending on these groups
-    # and should be updated/provisioned accordingly
-
     if user:
         if user.role != current_maximum_role:
             user.role = current_maximum_role
