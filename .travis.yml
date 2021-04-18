@@ -25,6 +25,7 @@ archlinux:
     - python-scrypt
     - pyalpm
     - sqlite
+    - authlib
   script:
     - python3 -m py_compile $(git ls-files '*.py')
     - make test
