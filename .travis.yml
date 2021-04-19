@@ -23,9 +23,9 @@ archlinux:
     - python-pytz
     - python-requests
     - python-scrypt
+    - python-authlib
     - pyalpm
     - sqlite
-    - authlib
   script:
     - python3 -m py_compile $(git ls-files '*.py')
     - make test
