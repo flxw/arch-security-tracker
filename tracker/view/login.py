@@ -67,7 +67,7 @@ def sso_auth():
     if not user_groups_present or len(user_groups) == 0:
         print("SSO error: a user authenticated without any valid groups")
 
-    current_maximum_role = condense_user_groups_to_role(user_groups)
+    current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
 
     if user:
         if user.role != current_maximum_role:
@@ -109,4 +109,8 @@ def condense_user_groups_to_role(idp_groups):
     }
 
     eligible_roles = [group_names_for_roles[group] for group in idp_groups if group in group_names_for_roles]
-    return sorted(eligible_roles, reverse=False)[0]
+    
+    if len(eligible_roles) > 0:
+        return sorted(eligible_roles, reverse=False)[0]
+    else:
+        return UserRole.guest
