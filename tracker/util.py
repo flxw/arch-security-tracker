@@ -1,6 +1,8 @@
 import re
 from functools import wraps
+
 from flask import json
+
 from config import atom_feeds
 
 word_split_re = re.compile(r'(\s+)')

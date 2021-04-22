@@ -6,14 +6,21 @@ from flask_login import login_user
 from flask_login import logout_user
 from werkzeug.exceptions import Unauthorized
 
+from config import SSO_ADMINISTRATOR_GROUP
+from config import SSO_ENABLED
+from config import SSO_GUEST_GROUP
+from config import SSO_NEW_USER_DEFAULT_PASSWORD
+from config import SSO_REPORTER_GROUP
+from config import SSO_SECURITY_TEAM_GROUP
 from config import TRACKER_PASSWORD_LENGTH_MAX
 from config import TRACKER_PASSWORD_LENGTH_MIN
-from config import SSO_ENABLED, SSO_NEW_USER_DEFAULT_PASSWORD, SSO_ADMINISTRATOR_GROUP, SSO_REPORTER_GROUP, SSO_SECURITY_TEAM_GROUP, SSO_GUEST_GROUP
-from tracker import tracker, oauth
+from tracker import oauth
+from tracker import tracker
 from tracker.form import LoginForm
 from tracker.model.user import User
 from tracker.user import user_assign_new_token
 from tracker.user import user_invalidate
+
 from ..model.enum import UserRole
 
 
@@ -89,7 +96,8 @@ def sso_auth():
     else:
         # user does not exist in local db
         # need to create him to leverage existing user access controls
-        from tracker.user import random_string, hash_password
+        from tracker.user import hash_password
+        from tracker.user import random_string
 
         user = User()
         user.name = parsed_token.get('preferred_username', '')
