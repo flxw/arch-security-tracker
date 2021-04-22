@@ -67,6 +67,7 @@ def sso_auth():
 
     if not user_groups_present or len(user_groups) == 0:
         print("SSO error: a user authenticated without any valid groups")
+        return redirect(url_for('tracker.index'))
 
     current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
 
