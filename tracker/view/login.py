@@ -65,16 +65,25 @@ def sso_auth():
 
     token = oauth.idp.authorize_access_token()
     parsed_token = oauth.idp.parse_id_token(token)
+    user_sub = parsed_token.get('sub')
+
+    if not parsed_token.get('email_verified'):
+        print("SSO error: user sub {} authenticated without a confirmed mail address".format(user_sub))
+        return redirect(url_for('tracker.index'))
 
     user_email_idp = parsed_token.get('email')
-    user = db.get(User, idp_id=parsed_token.get('sub'))
+    user = db.get(User, idp_id=user_sub)
     user = db.get(User, email=user_email_idp) if user == None else user
+
+    if user.idp_id != None:
+        print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
+        return redirect(url_for('tracker.index'))
 
     user_groups = parsed_token.get('groups')
     user_groups_present = user_groups != None
 
     if not user_groups_present or len(user_groups) == 0:
-        print("SSO error: a user authenticated without any valid groups")
+        print("SSO error: user sub {} authenticated without any valid groups".format(user_sub))
         return redirect(url_for('tracker.index'))
 
     current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
@@ -94,8 +103,6 @@ def sso_auth():
         user.is_authenticated = True
         login_user(user)
     else:
-        # user does not exist in local db
-        # need to create him to leverage existing user access controls
         from tracker.user import hash_password
         from tracker.user import random_string
 
@@ -106,7 +113,7 @@ def sso_auth():
         user.password = hash_password(SSO_NEW_USER_DEFAULT_PASSWORD, user.salt)
         user.role = current_maximum_role
         user.active = True
-        user.idp_id = parsed_token.get('sub')
+        user.idp_id = user_sub
 
         db.session.add(user)
         db.session.commit()
