@@ -59,8 +59,9 @@ def sso_auth():
     token = oauth.idp.authorize_access_token()
     parsed_token = oauth.idp.parse_id_token(token)
 
+    user_email_idp = parsed_token.get('email')
     user = db.get(User, idp_id=parsed_token.get('sub'))
-    user = db.get(User, email=parsed_token.get('email')) if user == None else user
+    user = db.get(User, email=user_email_idp) if user == None else user
 
     user_groups = parsed_token.get('groups')
     user_groups_present = user_groups != None
@@ -74,6 +75,11 @@ def sso_auth():
     if user:
         if user.role != current_maximum_role:
             user.role = current_maximum_role
+            db.session.add(user)
+            db.session.commit()
+        
+        if user.email != user_email_idp:
+            user.email = user_email_idp
             db.session.add(user)
             db.session.commit()
 
