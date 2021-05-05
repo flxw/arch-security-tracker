@@ -50,7 +50,6 @@ def login():
 
 @tracker.route('/logout', methods=['GET', 'POST'])
 def logout():
-    # TODO clear SSO session
     if not current_user.is_authenticated:
         return redirect(url_for('tracker.index'))
 
@@ -73,11 +72,15 @@ def sso_auth():
 
     user_email_idp = parsed_token.get('email')
     user = db.get(User, idp_id=user_sub)
-    user = db.get(User, email=user_email_idp) if user == None else user
 
-    if user.idp_id != None:
-        print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
-        return redirect(url_for('tracker.index'))
+    # the authenticated user does not have an IDP ID
+    if user is None:
+        user = db.get(User, email=user_email_idp) 
+        
+        # prevent impersonation by checking whether this email is associated with an IDP ID
+        if user and user.idp_id is not None:
+            print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
+            return redirect(url_for('tracker.index'))
 
     user_groups = parsed_token.get('groups')
     user_groups_present = user_groups != None
@@ -89,19 +92,8 @@ def sso_auth():
     current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
 
     if user:
-        if user.role != current_maximum_role:
-            user.role = current_maximum_role
-            db.session.add(user)
-            db.session.commit()
-        
-        if user.email != user_email_idp:
-            user.email = user_email_idp
-            db.session.add(user)
-            db.session.commit()
-
-        user = user_assign_new_token(user)
-        user.is_authenticated = True
-        login_user(user)
+        user.role = current_maximum_role if user.role != current_maximum_role else user.role
+        user.email = user_email_idp if user.email != user_email_idp else user.email
     else:
         from tracker.user import hash_password
         from tracker.user import random_string
@@ -114,13 +106,12 @@ def sso_auth():
         user.role = current_maximum_role
         user.active = True
         user.idp_id = user_sub
-
         db.session.add(user)
-        db.session.commit()
 
-        user = user_assign_new_token(user)
-        user.is_authenticated = True
-        login_user(user)
+    db.session.commit()
+    user = user_assign_new_token(user)
+    user.is_authenticated = True
+    login_user(user)
 
     return redirect(url_for('tracker.index'))
 
