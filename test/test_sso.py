@@ -9,12 +9,14 @@ from tracker.model import User
 from tracker.model.enum import UserRole
 from tracker.view.login import condense_user_groups_to_role
 from tracker.view.login import sso_auth
+from flask_login import current_user
 
 from .conftest import create_user
 
 DEFAULTEMAIL = "cyberwehr12345678@cyber.cyber"
 UPDATEDEMAIL = "cyberwehr1@cyber.cyber"
 TESTINGSUB = "wasd"
+TESTINGNAME = "Peter"
 
 class MockedIdp(object):
     def __init__(self, email, sub=None, groups=["Administrator"], verified=True):
@@ -31,7 +33,8 @@ class MockedIdp(object):
             "sub": self.sub,
             "email_verified": self.verified,
             "email": self.email,
-            "groups": self.groups
+            "groups": self.groups,
+            "preferred_username": TESTINGNAME
         }
 
 @patch("tracker.oauth.idp", MockedIdp(UPDATEDEMAIL, TESTINGSUB), create=True)
@@ -43,13 +46,10 @@ def test_successful_authentication_and_role_email_update(app, db):
 
     with app.test_request_context('/sso-auth'):
         sso_auth()
-
-    all_users = User.query.all()
-    assert len(all_users) == 1
-    updated_user = all_users[0]
-    assert updated_user.is_authenticated
-    assert updated_user.email == UPDATEDEMAIL
-    assert updated_user.role == UserRole.administrator
+        assert len(User.query.all()) == 1
+        assert current_user.is_authenticated
+        assert current_user.email == UPDATEDEMAIL
+        assert current_user.role == UserRole.administrator
 
 @patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, "STONKS"), create=True)
 @create_user(idp_id = "wasd")
@@ -74,21 +74,19 @@ def test_group_constraint(app, db):
     with app.test_request_context('/sso-auth'):
         sso_auth()
 
-    all_users = User.query.all()
-    assert len(all_users) == 0
+    assert not User.query.all()
 
 @patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, TESTINGSUB), create=True)
 def test_jit_provisioning(app, db):
     with app.test_request_context('/sso-auth'):
         sso_auth()
 
-    user = db.get(User, idp_id=TESTINGSUB)
-#    assert user.is_authenticated
-    assert user.email == DEFAULTEMAIL
-    assert user.role == UserRole.administrator
-    assert user.idp_id == TESTINGSUB
-    assert user.name == ''
-    assert user.active
+        assert current_user.is_authenticated
+        assert current_user.email == DEFAULTEMAIL
+        assert current_user.role == UserRole.administrator
+        assert current_user.idp_id == TESTINGSUB
+        assert current_user.name == TESTINGNAME
+        assert current_user.active
 
 @patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, TESTINGSUB, verified=False), create=True)
 def test_verified_email_requirement(app):
@@ -100,5 +98,6 @@ def test_verified_email_requirement(app):
 
 def test_correct_group_role_filtering():
     assert condense_user_groups_to_role([]).is_guest
+    assert condense_user_groups_to_role(['random']).is_guest
     assert condense_user_groups_to_role([SSO_GUEST_GROUP, SSO_SECURITY_TEAM_GROUP]).is_security_team
     assert condense_user_groups_to_role([SSO_REPORTER_GROUP, SSO_REPORTER_GROUP]).is_reporter

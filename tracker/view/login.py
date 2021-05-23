@@ -75,8 +75,8 @@ def sso_auth():
 
     # the authenticated user does not have an IDP ID
     if user is None:
-        user = db.get(User, email=user_email_idp) 
-        
+        user = db.get(User, email=user_email_idp)
+
         # prevent impersonation by checking whether this email is associated with an IDP ID
         if user and user.idp_id is not None:
             print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
@@ -99,7 +99,7 @@ def sso_auth():
         from tracker.user import random_string
 
         user = User()
-        user.name = parsed_token.get('preferred_username', '')
+        user.name = parsed_token.get('preferred_username')
         user.email = parsed_token.get('email')
         user.salt = random_string()
         user.password = hash_password(SSO_NEW_USER_DEFAULT_PASSWORD, user.salt)
@@ -124,7 +124,7 @@ def condense_user_groups_to_role(idp_groups):
     }
 
     eligible_roles = [group_names_for_roles[group] for group in idp_groups if group in group_names_for_roles]
-    
+
     if len(eligible_roles) > 0:
         return sorted(eligible_roles, reverse=False)[0]
     else:
