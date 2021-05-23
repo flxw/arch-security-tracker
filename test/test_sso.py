@@ -25,7 +25,7 @@ class MockedIdp(object):
 
     def authorize_access_token(self):
         return "Schinken"
-    
+
     def parse_id_token(self, token):
         return {
             "sub": self.sub,
@@ -43,7 +43,7 @@ def test_successful_authentication_and_role_email_update(app, db):
 
     with app.test_request_context('/sso-auth'):
         sso_auth()
-    
+
     all_users = User.query.all()
     assert len(all_users) == 1
     updated_user = all_users[0]
@@ -60,7 +60,7 @@ def test_impersonation_prevention(app, db):
 
     with app.test_request_context('/sso-auth'):
         sso_auth()
-    
+
     all_users = User.query.all()
     assert len(all_users) == 1
 
@@ -73,7 +73,7 @@ def test_impersonation_prevention(app, db):
 def test_group_constraint(app, db):
     with app.test_request_context('/sso-auth'):
         sso_auth()
-    
+
     all_users = User.query.all()
     assert len(all_users) == 0
 
