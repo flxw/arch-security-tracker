@@ -51,23 +51,12 @@ def test_successful_authentication_and_role_email_update(app, db):
         assert current_user.email == UPDATEDEMAIL
         assert current_user.role == UserRole.administrator
 
-@patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, "STONKS"), create=True)
+@patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, sub="STONKS"), create=True)
 @create_user(idp_id = "wasd")
 def test_impersonation_prevention(app, db):
-    user_state_before = User.query.all()[0]
-    assert user_state_before.email == DEFAULTEMAIL
-    assert user_state_before.role != UserRole.guest
-
     with app.test_request_context('/sso-auth'):
         sso_auth()
-
-    all_users = User.query.all()
-    assert len(all_users) == 1
-
-    user_state_after = all_users[0]
-    assert not user_state_after.is_authenticated
-    assert user_state_after.email == DEFAULTEMAIL
-    assert user_state_after.role != UserRole.guest
+        assert not current_user.is_authenticated
 
 @patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, TESTINGSUB, groups=[]), create=True)
 def test_group_constraint(app, db):
