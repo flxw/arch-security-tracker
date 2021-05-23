@@ -17,13 +17,12 @@ from tracker import db
 from tracker import oauth
 from tracker import tracker
 from tracker.form import LoginForm
+from tracker.model.enum import UserRole
 from tracker.model.user import User
 from tracker.user import hash_password
 from tracker.user import random_string
 from tracker.user import user_assign_new_token
 from tracker.user import user_invalidate
-
-from tracker.model.enum import UserRole
 from tracker.view.error import forbidden
 
 
@@ -88,8 +87,8 @@ def sso_auth():
     current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
 
     if user:
-        user.role = current_maximum_role if user.role != current_maximum_role else user.role
-        user.email = user_email_idp if user.email != user_email_idp else user.email
+        user.role = current_maximum_role
+        user.email = user_email_idp
     else:
         user = User()
         user.name = parsed_token.get('preferred_username')

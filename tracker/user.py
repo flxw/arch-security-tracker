@@ -4,7 +4,8 @@ from os import urandom
 
 from flask import redirect
 from flask import url_for
-from flask_login import current_user, login_required
+from flask_login import current_user
+from flask_login import login_required
 from scrypt import hash as shash
 from sqlalchemy.exc import IntegrityError
 
