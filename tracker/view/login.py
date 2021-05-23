@@ -83,13 +83,7 @@ def sso_auth():
             print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
             return redirect(url_for('tracker.index'))
 
-    user_groups = parsed_token.get('groups')
-    user_groups_present = user_groups != None
-
-    if not user_groups:
-        print("SSO error: user sub {} authenticated without any valid groups".format(user_sub))
-        return redirect(url_for('tracker.index'))
-
+    user_groups = parsed_token.get('groups', [])
     current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
 
     if user:

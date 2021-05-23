@@ -58,13 +58,6 @@ def test_impersonation_prevention(app, db):
         sso_auth()
         assert not current_user.is_authenticated
 
-@patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, TESTINGSUB, groups=[]), create=True)
-def test_group_constraint(app, db):
-    with app.test_request_context('/sso-auth'):
-        sso_auth()
-
-    assert not User.query.all()
-
 @patch('tracker.oauth.idp', MockedIdp(DEFAULTEMAIL, TESTINGSUB), create=True)
 def test_jit_provisioning(app, db):
     with app.test_request_context('/sso-auth'):
