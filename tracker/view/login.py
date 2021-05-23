@@ -14,10 +14,13 @@ from config import SSO_REPORTER_GROUP
 from config import SSO_SECURITY_TEAM_GROUP
 from config import TRACKER_PASSWORD_LENGTH_MAX
 from config import TRACKER_PASSWORD_LENGTH_MIN
+from tracker import db
 from tracker import oauth
 from tracker import tracker
 from tracker.form import LoginForm
 from tracker.model.user import User
+from tracker.user import hash_password
+from tracker.user import random_string
 from tracker.user import user_assign_new_token
 from tracker.user import user_invalidate
 
@@ -60,8 +63,6 @@ def logout():
 
 @tracker.route('/sso-auth')
 def sso_auth():
-    from tracker import db
-
     token = oauth.idp.authorize_access_token()
     parsed_token = oauth.idp.parse_id_token(token)
     user_sub = parsed_token.get('sub')
@@ -95,9 +96,6 @@ def sso_auth():
         user.role = current_maximum_role if user.role != current_maximum_role else user.role
         user.email = user_email_idp if user.email != user_email_idp else user.email
     else:
-        from tracker.user import hash_password
-        from tracker.user import random_string
-
         user = User()
         user.name = parsed_token.get('preferred_username')
         user.email = parsed_token.get('email')

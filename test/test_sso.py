@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from flask_login import current_user
 
 from config import SSO_GUEST_GROUP
 from config import SSO_REPORTER_GROUP
@@ -9,7 +10,6 @@ from tracker.model import User
 from tracker.model.enum import UserRole
 from tracker.view.login import condense_user_groups_to_role
 from tracker.view.login import sso_auth
-from flask_login import current_user
 
 from .conftest import create_user
 
