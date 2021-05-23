@@ -20,7 +20,7 @@ from tracker.user import user_invalidate
 from tracker.view.error import forbidden
 from tracker.view.error import not_found
 
-from ..user import login_required
+from flask_login import login_required
 
 
 @tracker.route('/admin', methods=['GET', 'POST'])

@@ -3,6 +3,7 @@ from types import MethodType
 from authlib.integrations.flask_client import OAuth
 from flask import Blueprint
 from flask import Flask
+from flask import url_for
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -71,6 +72,9 @@ def db_get_or_create(self, model, defaults=None, **kwargs):
         return instance
     return self.create(model, defaults, **kwargs)
 
+def handle_unauthorized_access_with_sso():
+    redirect_url = url_for('tracker.sso_auth', _external=True)
+    return oauth.idp.authorize_redirect(redirect_url)
 
 csp = {
     'default-src': '\'self\'',
@@ -126,6 +130,7 @@ def create_app(script_info=None):
                 'scope': 'openid email'
             }
         )
+        login_manager.unauthorized_handler(handle_unauthorized_access_with_sso)
 
     from tracker.view.error import error_handlers
     for error_handler in error_handlers:

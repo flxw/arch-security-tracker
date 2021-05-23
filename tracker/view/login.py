@@ -30,25 +30,26 @@ from ..model.enum import UserRole
 @tracker.route('/login', methods=['GET', 'POST'])
 def login():
     if SSO_ENABLED:
-        return redirect(url_for('tracker.list_user'))
-    else:
-        if current_user.is_authenticated:
-            return redirect(url_for('tracker.index'))
+        redirect_url = url_for('tracker.sso_auth', _external=True)
+        return oauth.idp.authorize_redirect(redirect_url)
 
-        form = LoginForm()
-        if not form.validate_on_submit():
-            status_code = Unauthorized.code if form.is_submitted() else 200
-            return render_template('login.html',
-                                title='Login',
-                                form=form,
-                                User=User,
-                                password_length={'min': TRACKER_PASSWORD_LENGTH_MIN,
-                                                 'max': TRACKER_PASSWORD_LENGTH_MAX}), status_code
-
-        user = user_assign_new_token(form.user)
-        user.is_authenticated = True
-        login_user(user)
+    if current_user.is_authenticated:
         return redirect(url_for('tracker.index'))
+
+    form = LoginForm()
+    if not form.validate_on_submit():
+        status_code = Unauthorized.code if form.is_submitted() else 200
+        return render_template('login.html',
+                            title='Login',
+                            form=form,
+                            User=User,
+                            password_length={'min': TRACKER_PASSWORD_LENGTH_MIN,
+                                                'max': TRACKER_PASSWORD_LENGTH_MAX}), status_code
+
+    user = user_assign_new_token(form.user)
+    user.is_authenticated = True
+    login_user(user)
+    return redirect(url_for('tracker.index'))
 
 
 @tracker.route('/logout', methods=['GET', 'POST'])
