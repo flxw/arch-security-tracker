@@ -24,6 +24,7 @@ from tracker.user import user_assign_new_token
 from tracker.user import user_invalidate
 
 from tracker.model.enum import UserRole
+from tracker.view.error import forbidden
 
 
 @tracker.route('/login', methods=['GET', 'POST'])
@@ -69,7 +70,7 @@ def sso_auth():
 
     if not parsed_token.get('email_verified'):
         print("SSO error: user sub {} authenticated without a confirmed mail address".format(user_sub))
-        return redirect(url_for('tracker.index'))
+        return forbidden("Please confirm your mail address first")
 
     user_email_idp = parsed_token.get('email')
     user = db.get(User, idp_id=user_sub)
@@ -81,7 +82,7 @@ def sso_auth():
         # prevent impersonation by checking whether this email is associated with an IDP ID
         if user and user.idp_id:
             print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
-            return redirect(url_for('tracker.index'))
+            return forbidden("Your email address is associated with a different sub")
 
     user_groups = parsed_token.get('groups', [])
     current_maximum_role = condense_user_groups_to_role(user_groups) if user_groups else UserRole.guest
