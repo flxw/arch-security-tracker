@@ -75,18 +75,18 @@ def sso_auth():
     user = db.get(User, idp_id=user_sub)
 
     # the authenticated user does not have an IDP ID
-    if user is None:
+    if not user:
         user = db.get(User, email=user_email_idp)
 
         # prevent impersonation by checking whether this email is associated with an IDP ID
-        if user and user.idp_id is not None:
+        if user and user.idp_id:
             print("SSO error: user sub {} tried to authenticate as {}".format(user_sub, user.email))
             return redirect(url_for('tracker.index'))
 
     user_groups = parsed_token.get('groups')
     user_groups_present = user_groups != None
 
-    if not user_groups_present or len(user_groups) == 0:
+    if not user_groups:
         print("SSO error: user sub {} authenticated without any valid groups".format(user_sub))
         return redirect(url_for('tracker.index'))
 
