@@ -9,7 +9,6 @@ from werkzeug.exceptions import Unauthorized
 from config import SSO_ADMINISTRATOR_GROUP
 from config import SSO_ENABLED
 from config import SSO_GUEST_GROUP
-from config import SSO_NEW_USER_DEFAULT_PASSWORD
 from config import SSO_REPORTER_GROUP
 from config import SSO_SECURITY_TEAM_GROUP
 from config import TRACKER_PASSWORD_LENGTH_MAX
@@ -95,7 +94,7 @@ def sso_auth():
         user.name = parsed_token.get('preferred_username')
         user.email = parsed_token.get('email')
         user.salt = random_string()
-        user.password = hash_password(SSO_NEW_USER_DEFAULT_PASSWORD, user.salt)
+        user.password = hash_password(random_string(TRACKER_PASSWORD_LENGTH_MAX), user.salt)
         user.role = current_maximum_role
         user.active = True
         user.idp_id = user_sub
