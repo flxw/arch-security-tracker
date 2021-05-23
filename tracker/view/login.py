@@ -23,7 +23,7 @@ from tracker.user import random_string
 from tracker.user import user_assign_new_token
 from tracker.user import user_invalidate
 
-from ..model.enum import UserRole
+from tracker.model.enum import UserRole
 
 
 @tracker.route('/login', methods=['GET', 'POST'])
